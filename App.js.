@@ -1,0 +1,101 @@
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+
+const CARDAPIO = [
+  { id: 1, nome: 'Sanduíche Natural', preco: 8.0 },
+  { id: 2, nome: 'Suco de Laranja', preco: 5.0 },
+  { id: 3, nome: 'Coxinha de Frango', preco: 6.5 },
+  { id: 4, nome: 'Café Expresso', preco: 4.0 },
+];
+
+export default function App() {
+  const [pedido, setPedido] = useState([]);
+
+  const adicionarItem = (produto) => {
+    const existente = pedido.find((item) => item.id === produto.id);
+    if (existente) {
+      setPedido(
+        pedido.map((item) =>
+          item.id === produto.id ? { ...item, quantidade: item.quantidade + 1 } : item
+        )
+      );
+    } else {
+      setPedido([...pedido, { ...produto, quantidade: 1 }]);
+    }
+  };
+
+  const alterarQuantidade = (id, delta) => {
+    setPedido(
+      pedido
+        .map((item) =>
+          item.id === id ? { ...item, quantidade: item.quantidade + delta } : item
+        )
+        .filter((item) => item.quantidade > 0)
+    );
+  };
+
+  const removerItem = (id) => {
+    setPedido(pedido.filter((item) => item.id !== id));
+  };
+
+  const totalGeral = pedido.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Lanchonete Universitária</Text>
+
+      <Text style={styles.subtitulo}>Produtos:</Text>
+      {CARDAPIO.map((prod) => (
+        <TouchableOpacity key={prod.id} style={styles.prodBotao} onPress={() => adicionarItem(prod)}>
+          <Text style={styles.prodTexto}>{prod.nome} - R$ {prod.preco.toFixed(2)}</Text>
+          <Text style={styles.addTexto}>+ Adicionar</Text>
+        </TouchableOpacity>
+      ))}
+
+      <Text style={styles.subtitulo}>Resumo do Pedido:</Text>
+      <ScrollView style={styles.lista}>
+        {pedido.map((item) => (
+          <View key={item.id} style={styles.itemPedido}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itemNome}>{item.nome}</Text>
+              <Text>Qtd: {item.quantidade} | Subtotal: R$ {(item.preco * item.quantidade).toFixed(2)}</Text>
+            </View>
+            <View style={styles.controles}>
+              <TouchableOpacity style={styles.qtdBtn} onPress={() => alterarQuantidade(item.id, -1)}>
+                <Text style={styles.btnTexto}>-</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.qtdBtn} onPress={() => alterarQuantidade(item.id, 1)}>
+                <Text style={styles.btnTexto}>+</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.remBtn} onPress={() => removerItem(item.id)}>
+                <Text style={styles.btnTexto}>X</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+
+      <View style={styles.rodape}>
+        <Text style={styles.total}>Total: R$ {totalGeral.toFixed(2)}</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, paddingTop: 50, paddingHorizontal: 20, backgroundColor: '#f5f5f5' },
+  titulo: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 15 },
+  subtitulo: { fontSize: 16, fontWeight: 'bold', marginTop: 10, marginBottom: 8 },
+  prodBotao: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#fff', padding: 12, borderRadius: 8, marginBottom: 6 },
+  prodTexto: { fontSize: 15 },
+  addTexto: { color: '#0066cc', fontWeight: 'bold' },
+  lista: { flex: 1 },
+  itemPedido: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 10, borderRadius: 8, marginBottom: 8 },
+  itemNome: { fontWeight: 'bold' },
+  controles: { flexDirection: 'row', gap: 5 },
+  qtdBtn: { backgroundColor: '#6c757d', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5 },
+  remBtn: { backgroundColor: '#dc3545', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5 },
+  btnTexto: { color: '#fff', fontWeight: 'bold' },
+  rodape: { paddingVertical: 15, borderTopWidth: 1, borderColor: '#ccc' },
+  total: { fontSize: 20, fontWeight: 'bold', textAlign: 'right', color: '#28a745' },
+});
